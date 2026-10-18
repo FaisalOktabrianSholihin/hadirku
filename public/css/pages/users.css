@@ -1,0 +1,28 @@
+/* Menu User */
+
+.pwrow {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start
+}
+
+.pwrow input {
+    margin-bottom: 12px
+}
+
+.pwrow .btn {
+    margin-top: 4px;
+    height: 44px
+}
+
+.tgl {
+    display: flex !important;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 14px;
+    border: 1px solid var(--bd);
+    border-radius: 14px;
+    font-weight: 500;
+    cursor: pointer
+}

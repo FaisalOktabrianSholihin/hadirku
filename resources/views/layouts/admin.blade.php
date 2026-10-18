@@ -8,6 +8,12 @@
     <title>@yield('title', 'Admin')</title>
     <link rel="icon" type="image/svg+xml" href="{{ asset('logo.svg') }}">
     <link rel="stylesheet" href="{{ asset('css/hadirku.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/layout-admin.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/combo.css') }}">
+    @if (auth()->user()->bolehAkses('presensi.karyawan'))
+        <link rel="stylesheet" href="{{ asset('css/import-progress.css') }}">
+    @endif
+    @stack('styles')
 </head>
 
 <body>
@@ -137,6 +143,9 @@
     </script>
     <script src="{{ asset('js/common.js') }}"></script>
     <script src="{{ asset('js/combo.js') }}"></script>
+    @if ($ok('presensi.karyawan'))
+        <script src="{{ asset('js/import-progress.js') }}"></script>
+    @endif
     @stack('scripts')
 </body>
 

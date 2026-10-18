@@ -1,0 +1,106 @@
+/* Komponen combobox pencarian (combo.js) */
+
+.cb {
+    position: relative;
+    width: 100%;
+    margin: 4px 0 12px
+}
+
+.cb .cb-in {
+    margin: 0;
+    padding-right: 36px;
+    cursor: text;
+    text-overflow: ellipsis
+}
+
+.cb.dis .cb-in {
+    background: #f3f7f4;
+    color: var(--mu);
+    cursor: not-allowed
+}
+
+.cb-ar {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--mu);
+    pointer-events: auto;
+    cursor: pointer;
+    display: grid;
+    transition: .2s
+}
+
+.cb.open .cb-ar {
+    transform: translateY(-50%) rotate(180deg);
+    color: var(--g700)
+}
+
+.cb-native {
+    position: absolute !important;
+    opacity: 0;
+    pointer-events: none;
+    width: 1px !important;
+    height: 1px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    left: 0;
+    bottom: 0
+}
+
+.cb-list {
+    position: fixed;
+    z-index: 500;
+    overflow: auto;
+    background: #fff;
+    border: 1px solid var(--bd);
+    border-radius: 14px;
+    box-shadow: 0 18px 50px rgba(5, 40, 20, .22);
+    padding: 6px;
+    animation: up .16s both
+}
+
+.cb-list[hidden] {
+    display: none
+}
+
+.cb-opt {
+    padding: 9px 12px;
+    border-radius: 9px;
+    cursor: pointer;
+    font-size: .9rem
+}
+
+.cb-opt.hi {
+    background: var(--g50)
+}
+
+.cb-opt.sel {
+    font-weight: 700;
+    color: var(--g800);
+    background: var(--g100)
+}
+
+.cb-opt.sel.hi {
+    background: #c9f2d6
+}
+
+.cb-opt.dis {
+    opacity: .4;
+    cursor: not-allowed
+}
+
+.cb-opt mark {
+    background: #fde68a;
+    color: inherit;
+    border-radius: 3px;
+    padding: 0 1px
+}
+
+.cb-empty {
+    padding: 12px;
+    color: var(--mu);
+    font-size: .85rem;
+    text-align: center
+}

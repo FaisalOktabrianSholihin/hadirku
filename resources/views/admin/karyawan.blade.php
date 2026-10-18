@@ -1,6 +1,9 @@
 @extends('layouts.admin')
 @section('title', 'Data Karyawan')
 @section('subtitle', 'Atur batas jam dan titik lahan setiap karyawan')
+@push('styles')
+    <link rel="stylesheet" href="{{ asset('css/pages/karyawan.css') }}">
+@endpush
 @section('content')
     <div class="card">
         <div class="head">

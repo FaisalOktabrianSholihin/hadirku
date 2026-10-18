@@ -24,21 +24,45 @@ class RekapController extends Controller
         $status = $r->query('status', '');
         $divisi = (int) $r->query('divisi', 0);
 
+        // Urutan kolom (asc/desc). Kolom yang bisa kosong (jam, lahan, jarak) selalu menaruh yang kosong di bawah.
+        $dir = strtolower((string) $r->query('dir', 'asc')) === 'desc' ? 'desc' : 'asc';
+        $kolom = [
+            'nama' => 'k.nama',
+            'divisi' => 'd.nama_divisi',
+            'jam' => 'a.jam',
+            'lahan' => 'a.titik_nama',
+            'jarak' => 'a.jarak',
+            'status' => "(case when a.id is null then 0 when a.status in ('telat', 'terlambat') then 2 else 1 end)",
+        ];
+        $sort = is_string($r->query('sort')) && isset($kolom[$r->query('sort')]) ? $r->query('sort') : 'nama';
+
         $rows = DB::table('pengaturan_absen as p')
-            ->join(Karyawan::tabel().' as k', 'k.nik', '=', 'p.nik')
-            ->leftJoin(Divisi::tabel().' as d', 'd.id', '=', 'k.divisi_id')
-            ->leftJoin(Jabatan::tabel().' as j', 'j.id', '=', 'k.jabatan_id')
-            ->leftJoin('absensi as a', fn ($jn) => $jn->on('a.nik', '=', 'p.nik')->where('a.tanggal', $tgl))
+            ->join(Karyawan::tabel() . ' as k', 'k.nik', '=', 'p.nik')
+            ->leftJoin(Divisi::tabel() . ' as d', 'd.id', '=', 'k.divisi_id')
+            ->leftJoin(Jabatan::tabel() . ' as j', 'j.id', '=', 'k.jabatan_id')
+            ->leftJoin('absensi as a', fn($jn) => $jn->on('a.nik', '=', 'p.nik')->where('a.tanggal', $tgl))
             ->where('p.aktif', true)
-            ->when($divisi > 0, fn ($x) => $x->where('k.divisi_id', $divisi))
-            ->when($q !== '', fn ($x) => $x->where(fn ($w) => $w
+            ->when($divisi > 0, fn($x) => $x->where('k.divisi_id', $divisi))
+            ->when($q !== '', fn($x) => $x->where(fn($w) => $w
                 ->where('k.nama', 'like', "%{$q}%")->orWhere('k.nik', 'like', "%{$q}%")))
-            ->when($status === 'hadir', fn ($x) => $x->whereNotNull('a.id'))
-            ->when($status === 'telat', fn ($x) => $x->whereIn('a.status', ['telat', 'terlambat']))
-            ->when($status === 'belum', fn ($x) => $x->whereNull('a.id'))
-            ->orderBy('k.nama')
-            ->select('k.nama', 'k.nik', 'j.nama_jabatan', 'd.nama_divisi', 'a.id as absen_id', 'a.jam',
-                'a.titik_nama', 'a.jarak', 'a.status', 'a.menit_telat')
+            ->when($status === 'hadir', fn($x) => $x->whereNotNull('a.id'))
+            ->when($status === 'telat', fn($x) => $x->whereIn('a.status', ['telat', 'terlambat']))
+            ->when($status === 'belum', fn($x) => $x->whereNull('a.id'))
+            ->orderByRaw($kolom[$sort] . ' is null')
+            ->orderByRaw($kolom[$sort] . ' ' . $dir)
+            ->when($sort !== 'nama', fn($x) => $x->orderBy('k.nama'))
+            ->select(
+                'k.nama',
+                'k.nik',
+                'j.nama_jabatan',
+                'd.nama_divisi',
+                'a.id as absen_id',
+                'a.jam',
+                'a.titik_nama',
+                'a.jarak',
+                'a.status',
+                'a.menit_telat'
+            )
             ->simplePaginate(25)->withQueryString();
 
         $aktif = Pengaturan::where('aktif', true)->count();
@@ -47,7 +71,7 @@ class RekapController extends Controller
         $libur = Kalender::info($tgl);
         $daftarDivisi = Divisi::orderBy('nama_divisi')->get(['id', 'nama_divisi']);
 
-        return view('admin.absensi', compact('rows', 'tgl', 'q', 'status', 'divisi', 'aktif', 'hadir', 'telat', 'libur', 'daftarDivisi'));
+        return view('admin.absensi', compact('rows', 'tgl', 'q', 'status', 'divisi', 'sort', 'dir', 'aktif', 'hadir', 'telat', 'libur', 'daftarDivisi'));
     }
 
     public function export(Request $r)
@@ -59,12 +83,25 @@ class RekapController extends Controller
             $f = fopen('php://output', 'w');
             fwrite($f, "\xEF\xBB\xBF");
             fputcsv($f, ['Tanggal', 'Jam', 'NIK', 'Nama', 'Divisi', 'Jabatan', 'Lahan', 'Jarak (m)', 'Radius (m)', 'Latitude', 'Longitude', 'Status', 'Telat (menit)']);
-            DB::table('absensi as a')->leftJoin(Karyawan::tabel().' as k', 'k.nik', '=', 'a.nik')
-                ->leftJoin(Divisi::tabel().' as d', 'd.id', '=', 'k.divisi_id')->leftJoin(Jabatan::tabel().' as j', 'j.id', '=', 'k.jabatan_id')
+            DB::table('absensi as a')->leftJoin(Karyawan::tabel() . ' as k', 'k.nik', '=', 'a.nik')
+                ->leftJoin(Divisi::tabel() . ' as d', 'd.id', '=', 'k.divisi_id')->leftJoin(Jabatan::tabel() . ' as j', 'j.id', '=', 'k.jabatan_id')
                 ->whereBetween('a.tanggal', [$dari, $sampai])->orderBy('a.tanggal')->orderBy('a.jam')
                 ->select('a.*', 'k.nama', 'd.nama_divisi', 'j.nama_jabatan')->cursor()->each(function ($a) use ($f) {
-                    fputcsv($f, [$a->tanggal, $a->jam, '="'.$a->nik.'"', $a->nama, $a->nama_divisi, $a->nama_jabatan, $a->titik_nama,
-                        $a->jarak, $a->radius, $a->lat, $a->lng, $a->status, $a->menit_telat]);
+                    fputcsv($f, [
+                        $a->tanggal,
+                        $a->jam,
+                        '="' . $a->nik . '"',
+                        $a->nama,
+                        $a->nama_divisi,
+                        $a->nama_jabatan,
+                        $a->titik_nama,
+                        $a->jarak,
+                        $a->radius,
+                        $a->lat,
+                        $a->lng,
+                        $a->status,
+                        $a->menit_telat
+                    ]);
                 });
             fclose($f);
         }, "absensi_{$dari}_{$sampai}.csv", ['Content-Type' => 'text/csv; charset=UTF-8']);

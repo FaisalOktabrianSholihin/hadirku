@@ -24,15 +24,15 @@ class AuthController extends Controller
         return view('login', ['tab' => 'admin']);
     }
 
-    // ---- Karyawan: NIK (8 digit) + 4 digit terakhir No. KTP ----
+    // ---- Karyawan: NIK (8 digit) + 6 digit depan No. KTP ----
     public function login(Request $r): RedirectResponse
     {
         $d = $r->validate([
-            'nik' => ['required', 'regex:/^\d{4,20}$/'],
-            'password' => ['required', 'digits:4'],
+            'nik' => ['required', 'regex:/^\d{8}$/'],
+            'password' => ['required', 'digits:6'],
         ], [
-            'nik.regex' => 'NIK harus berupa angka.',
-            'password.digits' => 'Password adalah 4 digit terakhir No. KTP.',
+            'nik.regex' => 'NIK harus tepat 8 digit angka.',
+            'password.digits' => 'Password adalah 6 digit depan No. KTP.',
         ]);
 
         $balik = function (string $pesan, ?string $nama = null) use ($d) {
@@ -42,7 +42,7 @@ class AuthController extends Controller
         };
 
         $k = Karyawan::where('nik', $d['nik'])->first();
-        if (! $k || (string) $k->status_aktif !== '1' || ! hash_equals(substr((string) $k->no_ktp, -4), $d['password'])) {
+        if (! $k || (string) $k->status_aktif !== '1' || ! hash_equals(substr(preg_replace('/\D/', '', (string) $k->no_ktp), 0, 6), $d['password'])) {
             return $balik('NIK atau password salah.');
         }
 
@@ -76,7 +76,7 @@ class AuthController extends Controller
     public function adminLogin(Request $r): RedirectResponse
     {
         $d = $r->validate(['email' => 'required|email', 'password' => 'required|string']);
-        $balik = fn (string $pesan) => back()->withInput(['email' => $d['email'], '_tab' => 'admin'])->withErrors(['email' => $pesan]);
+        $balik = fn(string $pesan) => back()->withInput(['email' => $d['email'], '_tab' => 'admin'])->withErrors(['email' => $pesan]);
 
         $u = User::where('email', strtolower($d['email']))->first();
 
@@ -103,7 +103,7 @@ class AuthController extends Controller
 
         $r->session()->regenerate();
         $user->forceFill(['terakhir_login' => now()])->save();
-        Aktivitas::catat('auth', 'login', 'Login ke panel admin ('.$user->namaRole().')', 'info', [], $user->name, 'admin');
+        Aktivitas::catat('auth', 'login', 'Login ke panel admin (' . $user->namaRole() . ')', 'info', [], $user->name, 'admin');
 
         return redirect()->intended($awal);
     }

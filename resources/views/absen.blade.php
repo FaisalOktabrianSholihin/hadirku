@@ -8,6 +8,7 @@
     <title>Absen · Hadirku</title>
     <link rel="icon" type="image/svg+xml" href="{{ asset('logo.svg') }}">
     <link rel="stylesheet" href="{{ asset('css/hadirku.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/pages/absen.css') }}">
 </head>
 
 <body>

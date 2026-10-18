@@ -1,0 +1,261 @@
+/* Halaman absen karyawan (termasuk popup kecurangan) */
+
+.emp {
+    max-width: 520px;
+    margin: 0 auto;
+    padding: 16px 16px 40px
+}
+
+.etop {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 4px 0 14px
+}
+
+.etop .brand-t b {
+    font-size: 1.05rem;
+    color: var(--g900)
+}
+
+.etop .brand-t .bl .logo {
+    box-shadow: 0 4px 12px rgba(22, 163, 74, .3)
+}
+
+.etop .brand-t small {
+    color: var(--mu)
+}
+
+.emp .hero {
+    padding: 22px;
+    display: block
+}
+
+.emp .hero h2 {
+    font-size: 1.4rem;
+    margin: 4px 0 10px
+}
+
+.clock {
+    font-size: 2.5rem;
+    font-weight: 800;
+    letter-spacing: .02em;
+    margin: 6px 0
+}
+
+.rows {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin: 12px 0
+}
+
+.rows div {
+    padding: 12px;
+    border-radius: 14px;
+    background: #f7faf8;
+    border: 1px solid var(--bd);
+    text-align: left
+}
+
+.rows small {
+    color: var(--mu);
+    display: block;
+    font-size: .74rem
+}
+
+.rows b {
+    font-size: .95rem
+}
+
+.cam {
+    position: relative;
+    border-radius: 18px;
+    overflow: hidden;
+    background: #000;
+    aspect-ratio: 3/4;
+    max-width: 420px;
+    margin: 12px auto
+}
+
+.cam video,
+.cam img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block
+}
+
+.res img {
+    width: 100%;
+    max-width: 340px;
+    border-radius: 14px;
+    display: block;
+    margin: 0 auto 12px
+}
+
+.chk {
+    width: 60px;
+    height: 60px;
+    display: block;
+    margin: 6px auto
+}
+
+.chk circle,
+.chk path {
+    fill: none;
+    stroke: var(--g600);
+    stroke-width: 4;
+    stroke-dasharray: 160;
+    stroke-dashoffset: 160;
+    animation: dr .8s .1s forwards
+}
+
+.dlg-ic.bad {
+    background: #ffe4e6;
+    color: var(--bad)
+}
+
+.fraud-h {
+    padding: 28px 24px 22px;
+    color: #fff;
+    background: linear-gradient(160deg, #e11d48, #9f1239);
+    position: relative
+}
+
+.fraud-h small {
+    display: block;
+    letter-spacing: .18em;
+    font-size: .68rem;
+    font-weight: 700;
+    opacity: .85;
+    margin-top: 12px
+}
+
+.fraud-h h3 {
+    padding: 0;
+    font-size: 1.35rem;
+    margin-top: 4px
+}
+
+.fraud-t {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 5px 14px;
+    border-radius: 99px;
+    background: rgba(255, 255, 255, .18);
+    font-weight: 700;
+    font-size: .84rem
+}
+
+.fraud-ic {
+    width: 74px;
+    height: 74px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, .16);
+    display: grid;
+    place-items: center;
+    margin: 0 auto;
+    animation: fpulse 1.6s infinite
+}
+
+.fraud-b {
+    padding: 20px 24px 6px;
+    text-align: left
+}
+
+.fraud-b p {
+    margin: 0 0 14px;
+    color: #3b4a41
+}
+
+.fraud-ul {
+    margin: 0 0 14px;
+    padding: 12px 14px 12px 30px;
+    border-radius: 14px;
+    background: #fff1f2;
+    color: #9f1239;
+    font-size: .85rem;
+    font-weight: 600
+}
+
+.fraud-ul li {
+    margin: 3px 0
+}
+
+.fraud-kv {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px 12px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: #f7faf8;
+    border: 1px solid var(--bd);
+    margin-bottom: 14px;
+    font-size: .88rem
+}
+
+.fraud-kv span {
+    color: var(--mu)
+}
+
+.fraud-kv b.bad {
+    color: var(--bad)
+}
+
+.fraud-note {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    font-size: .8rem;
+    color: var(--mu);
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: #f7faf8
+}
+
+.fraud-note .ic {
+    margin-top: 2px;
+    color: var(--bad)
+}
+
+.fraud-f {
+    padding: 16px 24px 24px
+}
+
+.blk {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    text-align: left
+}
+
+.blk .ic {
+    margin-top: 2px
+}
+
+.res-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 10px;
+    align-items: baseline;
+    justify-content: center;
+    padding: 10px 12px;
+    border-radius: 12px;
+    font-size: .88rem
+}
+
+.res-row.ok {
+    background: var(--g100);
+    color: var(--g800)
+}
+
+.res-row.no {
+    background: #ffe4e6;
+    color: #9f1239
+}
+
+.res-row small {
+    width: 100%;
+    opacity: .8
+}

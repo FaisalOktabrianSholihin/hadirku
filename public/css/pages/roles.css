@@ -1,0 +1,115 @@
+/* Menu Roles */
+
+.rgrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 14px
+}
+
+.rc {
+    border: 1px solid var(--bd);
+    border-radius: 18px;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: #fff;
+    animation: up .4s both;
+    transition: .2s
+}
+
+.rc:hover {
+    box-shadow: var(--sh);
+    transform: translateY(-2px)
+}
+
+.rc.sys {
+    background: linear-gradient(160deg, #f0fdf4, #fff)
+}
+
+.rc-h {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start
+}
+
+.rc-ic {
+    width: 42px;
+    height: 42px;
+    border-radius: 13px;
+    display: grid;
+    place-items: center;
+    background: var(--g100);
+    color: var(--g700);
+    flex: none
+}
+
+.rc-s,
+.rc-g {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap
+}
+
+.chip2 {
+    font-size: .76rem;
+    padding: 3px 9px;
+    border-radius: 8px;
+    background: #f1f5f2;
+    color: var(--mu)
+}
+
+.chip2 b {
+    color: var(--g800)
+}
+
+.rc-a {
+    margin-top: auto;
+    display: flex;
+    gap: 6px;
+    align-items: center
+}
+
+.perm-h {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 6px 0
+}
+
+.perm {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 10px;
+    max-height: 44vh;
+    overflow: auto;
+    padding: 2px
+}
+
+.pg {
+    border: 1px solid var(--bd);
+    border-radius: 14px;
+    padding: 10px 12px
+}
+
+.pg-h {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    font-size: .85rem
+}
+
+.pg-h a {
+    font-size: .76rem;
+    text-decoration: none;
+    font-weight: 600
+}
+
+.pi {
+    display: flex !important;
+    gap: 9px;
+    align-items: center;
+    font-weight: 500 !important;
+    padding: 5px 0;
+    cursor: pointer
+}

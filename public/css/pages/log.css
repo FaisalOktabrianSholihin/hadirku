@@ -1,0 +1,45 @@
+/* Menu Log Aktivitas */
+
+.wrap-t {
+    white-space: normal;
+    min-width: 260px;
+    max-width: 460px
+}
+
+tr.lg-danger td {
+    background: #fff5f6
+}
+
+.kv {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 10px 12px;
+    font-size: .9rem
+}
+
+.kv span {
+    color: var(--mu)
+}
+
+.kv b {
+    word-break: break-word
+}
+
+.desc-box {
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: #f7faf8;
+    border: 1px solid var(--bd);
+    margin-top: 4px
+}
+
+.json {
+    margin: 4px 0 0;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: #0f1f17;
+    color: #c9f2d6;
+    font-size: .78rem;
+    overflow: auto;
+    max-height: 240px
+}

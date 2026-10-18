@@ -1,7 +1,26 @@
+REVISI 19 Okt 2026
+==================
 Timpa file di folder proyek hadirku dengan struktur yang sama, lalu jalankan:
-  php artisan migrate
-  (opsional) php artisan db:seed
-Opsional di .env:
-  HADIRKU_DETEKSI_GPS=true
-  HADIRKU_SKOR_FAKE_GPS=3
-  HADIRKU_TOLERANSI_WAKTU=120
+  php artisan migrate                 (membuat tabel import_jobs)
+  php artisan queue:work --timeout=1800   (WAJIB aktif agar import berjalan di latar belakang)
+Setelah menimpa file, tekan Ctrl+F5 di browser (CSS/JS berubah).
+
+Tanpa worker (mode sederhana, mis. saat development)? Isi di .env:
+  HADIRKU_IMPORT_QUEUE=false
+Import dijalankan sesudah respons dikirim. Kalau memakai "php artisan serve", aktifkan juga
+PHP_CLI_SERVER_WORKERS=4 agar halaman lain tidak menunggu.
+
+1. Popup Import Data Karyawan dibuat ulang (tombol Download Template, kotak Perhatian, pilih file, Import Excel / Kembali).
+   Template sekarang file .xlsx kosong (tanpa contoh data): public/template/template-import-presensi.xlsx
+   Sheet 1 "Data Presensi" = header saja, sheet 2 "Petunjuk" = keterangan tiap kolom.
+2. Import berjalan di latar belakang (queue) dengan progres persen. Aman pindah menu / menutup popup:
+   widget progres muncul di pojok kanan bawah semua menu sampai selesai.
+3. Login karyawan: password = 6 digit DEPAN No. KTP. NIK dibatasi tepat 8 digit (input, validasi server, dan import Excel).
+4. Absensi Harian dan Keterangan Absen: header kolom bisa diurutkan asc/desc.
+5. CSS dipecah per menu:
+     public/css/hadirku.css        dasar (variabel, tombol, tabel, modal, toast)
+     public/css/layout-admin.css   sidebar & topbar admin
+     public/css/combo.css          combobox
+     public/css/import-progress.css widget progres import
+     public/css/pages/*.css        login, absen, dashboard, absensi, karyawan, report, master, users, libur, roles, log
+   Halaman memuat hadirku.css + file menunya lewat @push('styles').

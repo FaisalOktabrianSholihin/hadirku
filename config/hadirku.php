@@ -15,6 +15,10 @@ return [
     // Toleransi selisih jam perangkat vs jam server (detik). Lebih dari ini = dianggap mengubah waktu HP
     'toleransi_waktu' => (int) env('HADIRKU_TOLERANSI_WAKTU', 120),
 
+    // Import Excel berjalan di latar belakang lewat queue (jalankan: php artisan queue:work).
+    // Set HADIRKU_IMPORT_QUEUE=false bila tidak memakai worker: import dijalankan sesudah respons dikirim.
+    'import_queue' => (bool) env('HADIRKU_IMPORT_QUEUE', true),
+
     'radius_default' => 150,
     'maks_foto_kb' => 2048,
     'nonce_menit' => 15,

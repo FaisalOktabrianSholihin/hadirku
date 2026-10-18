@@ -1,0 +1,64 @@
+/* Menu Report */
+
+.rt th.c,
+.rt td.c {
+    text-align: center
+}
+
+.rt thead th {
+    position: sticky;
+    top: 0
+}
+
+.rt .grp th {
+    background: #eaf3ed;
+    color: var(--g800);
+    text-align: center;
+    border-bottom: 1px solid var(--bd)
+}
+
+.rt tr.dv td {
+    background: #f2f8f4;
+    font-weight: 700;
+    cursor: pointer
+}
+
+.rt tr.dv:hover td {
+    background: #e8f3ec
+}
+
+.rt tr.us td {
+    font-size: .85rem
+}
+
+.rt tr.us td:first-child {
+    padding-left: 44px
+}
+
+.rt tr.tot td {
+    background: var(--g900);
+    color: #fff;
+    font-weight: 700;
+    border: 0
+}
+
+.chev {
+    display: inline-block;
+    transition: .2s;
+    margin-right: 8px;
+    color: var(--g700)
+}
+
+.dv.open .chev {
+    transform: rotate(180deg)
+}
+
+.z {
+    color: #b6c4bb
+}
+
+@media print {
+  .rt tr.us {
+          display: table-row !important
+      }
+}

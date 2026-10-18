@@ -118,44 +118,104 @@
     optEmp();
   }
 
-  // ===== Import Excel / CSV =====
-  const TPL = [['NIK', 'Jam_Batas', 'Telat', 'Jam_Tutup', 'Nama_Titik', 'Koordinat_atau_Link', 'Radius_m', 'Ikut_NIK_Asmen'],
-  ['99720014', '08:00', 'Ya', '17:00', 'Lahan A', '-8.2192,114.3691', '150', ''],
-  ['99720014', '08:00', 'Ya', '17:00', 'Lahan B', 'https://www.google.com/maps/@-8.2301,114.3802,17z', '200', ''],
-  ['02820009', '', 'Tidak', '', 'Lahan A', '-8.2105,114.3555', '100', ''],
-  ['96700008', '', 'Tidak', '', '', '', '', '99720014']];
+  // ===== Import Excel (berjalan di latar belakang) =====
+  const aktifImp = j => j && (j.status === 'menunggu' || j.status === 'berjalan');
+  const norm = k => String(k).toLowerCase().replace(/[^a-z]/g, '');
+
   function imp() {
-    const m = modal(`<h3>Import Excel / CSV</h3>
-      <p class="mu sm" style="margin:4px 0 12px">Satu baris = satu titik. NIK yang sama di beberapa baris otomatis menjadi <b>Multi Titik</b> (jumlah baris tanpa batas). Satu baris saja = Single. Data lama karyawan yang sama akan ditimpa.</p>
-      <div class="tw"><table><tr>${TPL[0].map(h => `<th>${h}</th>`).join('')}</tr>${TPL.slice(1).map(r => `<tr>${r.map(v => `<td>${esc(v)}</td>`).join('')}</tr>`).join('')}</table></div>
-      <ul class="mu sm" style="padding-left:18px"><li><b>NIK</b>: 8 digit sesuai db_indukk (nol di depan otomatis dilengkapi).</li>
-      <li><b>Telat</b>: Ya / Tidak. Jika Tidak, Jam_Batas boleh kosong.</li>
-      <li><b>Jam_Batas</b> dan <b>Jam_Tutup</b>: format HH:MM (24 jam). Jam_Tutup opsional.</li>
-      <li><b>Koordinat_atau_Link</b>: “lat,lng” atau link Google Maps panjang.</li>
-      <li><b>Radius_m</b>: meter (kosong = 150).</li>
-      <li><b>Ikut_NIK_Asmen</b> (opsional, khusus Manager): NIK asmen yang titiknya dipakai; kolom titik dikosongkan. Asmen harus diimport lebih dulu.</li></ul>
-      <div class="row-btn"><button class="btn ghost sm" id="tx">⬇ Template Excel (.xlsx)</button><a class="btn ghost sm" href="${window.HADIRKU.template}">⬇ Template CSV</a></div>
-      <label style="margin-top:14px">Pilih file (.xlsx / .xls / .csv)</label>
-      <input type="file" id="xf" accept=".xlsx,.xls,.csv"><div id="ir"></div>
-      <div style="text-align:right"><button class="btn ghost" id="bx">Tutup</button></div>`);
-    m.querySelector('#bx').onclick = () => m.remove();
-    m.querySelector('#tx').onclick = () => {
-      const ws = XLSX.utils.aoa_to_sheet(TPL); ws['!cols'] = [{ wch: 12 }, { wch: 11 }, { wch: 8 }, { wch: 11 }, { wch: 16 }, { wch: 50 }, { wch: 10 }, { wch: 16 }];
-      const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Template'); XLSX.writeFile(wb, 'template_titik_presensi.xlsx');
+    const m = modal(`<div class="imp-title"><h3>Import Data Karyawan</h3></div>
+      <div class="imp-dl"><span>${ic('file', 18)} Download Template Import</span>
+        <a class="btn sm" href="${window.HADIRKU.template}">${ic('download', 16)} Download Template</a></div>
+      <div class="imp-box">
+        <div class="imp-bh">${ic('upload', 18)} Upload File Excel</div>
+        <div class="imp-bb" id="ib">
+          <div class="imp-warn"><b>${ic('alert', 15)} Perhatian:</b>
+            <ol>
+              <li>Download template Excel di atas terlebih dahulu</li>
+              <li>Isi data mulai dari <b>baris ke-2</b> (baris header jangan diubah)</li>
+              <li>Satu baris = satu titik lahan. NIK yang sama di beberapa baris otomatis menjadi <b>Multi Titik</b></li>
+              <li>Simpan file dalam format <b>.xlsx</b> (nama file bebas)</li>
+              <li>Upload file tersebut melalui form di bawah</li>
+              <li>Kolom <b>NIK</b> harus 8 digit berformat <b>Teks</b>; <b>Telat</b> diisi <b>Ya</b> atau <b>Tidak</b>; <b>Jam_Batas</b> dan <b>Jam_Tutup</b> ditulis <b>HH:MM</b>. Penjelasan tiap kolom ada di sheet kedua <b>Petunjuk</b></li>
+            </ol>
+          </div>
+          <label for="xf">Pilih File Excel</label>
+          <input type="file" id="xf" class="imp-file" accept=".xlsx,.xls,.csv">
+          <div id="ie"></div>
+          <div class="imp-act">
+            <button class="btn" id="go" type="button" disabled>${ic('upload', 16)} Import Excel</button>
+            <button class="btn ghost" id="bx" type="button">${ic('back', 16)} Kembali</button>
+          </div>
+        </div>
+      </div>`, { cls: 'imp-card' });
+    m.setAttribute('data-imp-modal', '');
+    const $m = s => m.querySelector(s);
+    const bye = () => m.remove();
+    $m('#bx').onclick = bye;
+
+    // ---- tampilan progres di dalam popup ----
+    const tampilProgres = () => {
+      $m('#ib').innerHTML = `<div class="imp-prog">
+          <div class="imp-pt"><span id="ipt">Menunggu antrian…</span><b id="ipp">0%</b></div>
+          <div class="ipb"><i id="ipf" style="width:0%"></i></div>
+          <p class="mu sm" id="ipn">Proses berjalan di latar belakang. Anda boleh menutup popup atau pindah menu, progres tetap tampil di pojok kanan bawah.</p>
+          <div id="ires"></div>
+        </div>
+        <div class="imp-act"><button class="btn ghost" id="bx2" type="button">Tutup</button></div>`;
+      $m('#bx2').onclick = bye;
     };
-    m.querySelector('#xf').onchange = async e => {
-      const f = e.target.files[0]; if (!f) return;
-      const out = m.querySelector('#ir'); out.innerHTML = '<div class="info ok">Memproses…</div>';
+    const update = j => {
+      if (!$m('#ipf')) return;
+      $m('#ipf').style.width = j.persen + '%'; $m('#ipp').textContent = j.persen + '%';
+      if (j.status === 'menunggu') $m('#ipt').textContent = j.menunggu_detik > 15 ? 'Menunggu antrian… pastikan queue worker berjalan (php artisan queue:work)' : 'Menunggu antrian…';
+      else if (j.status === 'berjalan') $m('#ipt').textContent = `Memproses ${j.diproses} dari ${j.total} karyawan`;
+      else {
+        $m('#ipt').textContent = j.status === 'selesai' ? 'Selesai' : 'Gagal';
+        $m('#ipn').remove();
+        const err = (j.errors || []).map(esc).join('<br>') + (j.errors_lainnya ? `<br>…dan ${j.errors_lainnya} error lain` : '');
+        $m('#ires').innerHTML = j.status === 'selesai'
+          ? `<div class="info ok">✅ ${j.berhasil} karyawan berhasil diimport${j.gagal ? `, ${j.gagal} dilewati` : ''}</div>${err ? `<div class="info no" style="font-weight:500">${err}</div>` : ''}`
+          : `<div class="info no">${esc(j.pesan || 'Import gagal diproses.')}</div>${err ? `<div class="info no" style="font-weight:500">${err}</div>` : ''}`;
+      }
+    };
+    const onUpd = e => update(e.detail);
+    document.addEventListener('import:update', onUpd);
+    m.addEventListener('close', () => {
+      document.removeEventListener('import:update', onUpd);
+      setTimeout(() => H.imp?.segarkan(), 250); // popup tertutup: widget pojok kanan bawah mengambil alih
+    });
+
+    // popup dibuka saat ada import yang masih jalan: langsung tampilkan progresnya
+    if (aktifImp(H.imp?.job)) { tampilProgres(); update(H.imp.job); return; }
+
+    // ---- pilih file & kirim ----
+    const out = $m('#ie');
+    $m('#xf').onchange = e => { out.innerHTML = ''; $m('#go').disabled = !e.target.files[0]; };
+    $m('#go').onclick = async () => {
+      const f = $m('#xf').files[0]; if (!f) return;
+      const go = $m('#go'); go.disabled = true; out.innerHTML = '<div class="info ok">Membaca file…</div>';
       try {
         const wb = XLSX.read(await f.arrayBuffer(), { type: 'array', raw: true, codepage: 65001 });
-        const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: '', raw: true });
-        if (!rows.length) throw new Error('File kosong');
-        const r = await api('/admin/api/import', 'POST', { rows });
-        out.innerHTML = `<div class="info ok">✅ ${r.berhasil} karyawan berhasil diimport${r.gagal ? `, ${r.gagal} dilewati` : ''}</div>`
-          + (r.errors.length ? `<div class="info no" style="font-weight:500">${r.errors.map(esc).join('<br>')}${r.errors_lainnya ? `<br>…dan ${r.errors_lainnya} error lain` : ''}</div>` : '');
-        load();
-      } catch (er) { out.innerHTML = `<div class="info no">${esc(er.message)}</div>`; }
+        const ws = wb.Sheets['Data Presensi'] || wb.Sheets[wb.SheetNames[0]];
+        const aoa = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', raw: true, blankrows: true });
+        if (aoa.length < 2) throw new Error('File kosong. Isi data mulai dari baris ke-2.');
+        const head = aoa[0].map(norm);
+        if (!head.includes('nik')) throw new Error('Header tidak sesuai. Gunakan template dari tombol “Download Template” dan jangan ubah baris header.');
+        const rows = [];
+        aoa.slice(1).forEach((r, i) => {
+          if (!r.some(v => String(v).trim() !== '')) return; // lewati baris kosong, nomor baris asli tetap dikirim
+          const o = { __baris: i + 2 };
+          aoa[0].forEach((h, c) => { if (String(h).trim() !== '') o[h] = r[c] ?? ''; });
+          rows.push(o);
+        });
+        if (!rows.length) throw new Error('File kosong. Isi data mulai dari baris ke-2.');
+        if (rows.length > 5000) throw new Error('Maksimal 5.000 baris per file (file ini ' + rows.length + ' baris).');
+        const j = await api('/admin/api/import', 'POST', { rows, nama_file: f.name });
+        tampilProgres();
+        H.imp.mulai(j);
+      } catch (er) { out.innerHTML = `<div class="info no">${esc(er.message)}</div>`; go.disabled = false; }
     };
   }
+  document.addEventListener('import:selesai', () => load()); // muat ulang tabel saat import selesai (popup tertutup / pindah menu)
   load();
 })();

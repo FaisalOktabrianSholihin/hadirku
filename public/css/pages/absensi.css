@@ -1,0 +1,36 @@
+/* Menu Absensi Harian */
+
+.stats {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 14px
+}
+
+.stats div {
+    flex: 1;
+    min-width: 110px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: #f7faf8;
+    border: 1px solid var(--bd)
+}
+
+.stats b {
+    font-size: 1.6rem;
+    display: block
+}
+
+.thumb {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    object-fit: cover
+}
+
+/* Header kolom yang bisa diurutkan (server-side, berupa tautan) */
+.th-sort {
+    color: inherit;
+    text-decoration: none;
+    display: inline-block
+}

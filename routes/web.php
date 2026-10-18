@@ -78,6 +78,9 @@ Route::prefix('admin')->group(function () {
                 Route::delete('pengaturan/{nik}', [PengaturanController::class, 'destroy']);
                 Route::get('induk', [PengaturanController::class, 'induk']);
                 Route::post('import', [PengaturanController::class, 'import']);
+                Route::get('import/aktif', [PengaturanController::class, 'importAktif']);
+                Route::get('import/{id}', [PengaturanController::class, 'importShow'])->whereNumber('id');
+                Route::post('import/{id}/tutup', [PengaturanController::class, 'importTutup'])->whereNumber('id');
             });
 
             Route::middleware('izin:laporan.report')->group(function () {

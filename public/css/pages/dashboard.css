@@ -1,0 +1,131 @@
+/* Menu Dashboard */
+
+.pills span.lib {
+    background: #fbbf24;
+    color: #451a03;
+    border-color: #fbbf24
+}
+
+.hs {
+    display: flex;
+    gap: 12px
+}
+
+.hs div {
+    min-width: 88px;
+    padding: 14px 12px;
+    text-align: center;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, .1);
+    border: 1px solid rgba(255, 255, 255, .16)
+}
+
+.hs b {
+    font-size: 1.7rem;
+    display: block;
+    line-height: 1.1
+}
+
+.hs small {
+    opacity: .85;
+    font-size: .76rem
+}
+
+.grid4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin: 18px 0
+}
+
+.sc {
+    position: relative;
+    overflow: hidden;
+    padding: 20px 20px 24px
+}
+
+.sc::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 4px;
+    background: var(--c)
+}
+
+.sc .l {
+    color: var(--mu);
+    font-weight: 600;
+    font-size: .85rem
+}
+
+.sc .n {
+    font-size: 2.2rem;
+    font-weight: 800;
+    margin: 6px 0 2px
+}
+
+.sc .d {
+    color: var(--mu);
+    font-size: .82rem
+}
+
+.sc .ico {
+    position: absolute;
+    right: 18px;
+    top: 18px;
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    display: grid;
+    place-items: center;
+    background: color-mix(in srgb, var(--c) 14%, #fff);
+    color: var(--c)
+}
+
+.grid2 {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: 16px;
+    margin-bottom: 18px
+}
+
+@media(max-width:1100px) {
+  .grid4 {
+          grid-template-columns: repeat(2, 1fr)
+      }
+  .grid2 {
+          grid-template-columns: 1fr
+      }
+}
+
+@media(max-width:560px) {
+  .grid4 {
+          grid-template-columns: 1fr
+      }
+  .hs {
+          width: 100%
+      }
+  .hs div {
+          flex: 1
+      }
+}
+
+.legend {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 10px;
+    font-size: .8rem;
+    color: var(--mu)
+}
+
+.legend i {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 6px
+}

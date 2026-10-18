@@ -2,11 +2,30 @@
   const { api, esc, toast, modal, ic } = H;
   const $ = s => document.querySelector(s);
   let list = [];
+  const st = { sort: '', dir: 'asc' }; // sort kosong = urutan bawaan dari server
+
+  // nilai yang dibandingkan untuk tiap kolom header
+  const NILAI = { kode: k => k.kode, nama: k => k.nama, jenis: k => (k.sistem ? 0 : 1), menit: k => (k.pakai_menit ? 1 : 0), aktif: k => (k.aktif ? 1 : 0) };
+  function urut() {
+    const f = NILAI[st.sort]; if (!f) return list;
+    const d = st.dir === 'asc' ? 1 : -1;
+    return list.map((k, i) => [k, i]).sort((a, b) => {
+      const x = f(a[0]), y = f(b[0]);
+      const c = typeof x === 'string' ? x.localeCompare(y, 'id', { numeric: true, sensitivity: 'base' }) : x - y;
+      return c * d || a[1] - b[1];
+    }).map(p => p[0]);
+  }
 
   async function load() {
     try {
       list = await api('/admin/api/keterangan');
-      $('#tb').innerHTML = list.map((k, i) => `<tr style="animation-delay:${i * 25}ms">
+      tampil();
+    } catch (e) { toast(e.message, 1); }
+  }
+
+  function tampil() {
+    try {
+      $('#tb').innerHTML = urut().map((k, i) => `<tr style="animation-delay:${i * 25}ms">
         <td><span class="chip" style="background:${esc(k.warna)}">${esc(k.kode)}</span></td>
         <td><b>${esc(k.nama)}</b>${k.dipakai ? `<br><span class="mu sm">dipakai ${k.dipakai}×</span>` : ''}</td>
         <td>${k.sistem ? `<span class="badge b">Bawaan sistem (${esc(k.sistem)})</span>` : '<span class="badge g">Input manual</span>'}</td>
@@ -16,6 +35,7 @@
     } catch (e) { toast(e.message, 1); }
   }
 
+  H.sortable($('#th'), st, tampil);
   $('#tb').addEventListener('click', async e => {
     const t = e.target.closest('[data-tg],[data-ed],[data-del]'); if (!t) return;
     try {

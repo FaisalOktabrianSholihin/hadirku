@@ -8,6 +8,7 @@
     <title>Masuk · Hadirku</title>
     <link rel="icon" type="image/svg+xml" href="{{ asset('logo.svg') }}">
     <link rel="stylesheet" href="{{ asset('css/hadirku.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/pages/login.css') }}">
 </head>
 
 <body>
@@ -33,12 +34,13 @@
                     @endif
                     <label for="nik">NIK</label>
                     <div class="fld"><x-icon n="user" /><input id="nik" name="nik" inputmode="numeric"
-                            autocomplete="username" placeholder="8 digit NIK" value="{{ old('nik') }}" required>
+                            maxlength="8" pattern="\d{8}" autocomplete="username" placeholder="8 digit NIK"
+                            value="{{ old('nik') }}" required>
                     </div>
                     <label for="pw">Password</label>
                     <div class="fld"><x-icon n="lock" /><input id="pw" name="password" type="password"
-                            inputmode="numeric" maxlength="4" autocomplete="current-password"
-                            placeholder="4 digit terakhir No. KTP" required><span class="eye"
+                            inputmode="numeric" maxlength="6" pattern="\d{6}" autocomplete="current-password"
+                            placeholder="6 digit depan No. KTP" required><span class="eye"
                             data-eye="pw">Lihat</span></div>
                     <button class="btn full pulse" type="submit">Masuk &amp; Absen <x-icon n="arrow" /></button>
                 </form>
@@ -97,6 +99,17 @@
             document.querySelectorAll('#seg button').forEach(x => x.classList.toggle('on', x === b));
             document.getElementById('f-karyawan').style.display = b.dataset.t === 'karyawan' ? 'block' : 'none';
             document.getElementById('f-admin').style.display = b.dataset.t === 'admin' ? 'block' : 'none';
+        });
+        // NIK maksimal 8 digit, password 6 digit: hanya angka (termasuk saat paste)
+        [
+            ['nik', 8],
+            ['pw', 6]
+        ].forEach(([id, n]) => {
+            const i = document.getElementById(id);
+            i.addEventListener('input', () => {
+                const v = i.value.replace(/\D/g, '').slice(0, n);
+                if (v !== i.value) i.value = v;
+            });
         });
         document.querySelectorAll('[data-eye]').forEach(e => e.onclick = () => {
             const i = document.getElementById(e.dataset.eye);

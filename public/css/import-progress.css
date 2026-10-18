@@ -1,0 +1,148 @@
+/* Widget progres import (tampil di semua menu admin bagi yang berhak mengelola Data Karyawan) */
+
+.ipb {
+    height: 10px;
+    border-radius: 99px;
+    background: #e2ebe5;
+    overflow: hidden
+}
+
+.ipb>i {
+    display: block;
+    height: 100%;
+    min-width: 6px;
+    border-radius: 99px;
+    background: linear-gradient(90deg, var(--g600), var(--g500));
+    transition: width .5s ease
+}
+
+.impw {
+    position: fixed;
+    right: 18px;
+    bottom: 18px;
+    width: 330px;
+    max-width: calc(100vw - 36px);
+    background: #fff;
+    border: 1px solid var(--bd);
+    border-left: 4px solid var(--g600);
+    border-radius: 14px;
+    box-shadow: 0 14px 40px rgba(10, 60, 30, .22);
+    padding: 14px 16px;
+    z-index: 55;
+    animation: up .35s both
+}
+
+.impw.bad {
+    border-left-color: var(--bad)
+}
+
+.impw-h {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 10px
+}
+
+.impw-h>div {
+    flex: 1;
+    min-width: 0
+}
+
+.impw-h b {
+    display: block;
+    font-size: .92rem
+}
+
+.impw-h small {
+    display: block;
+    color: var(--mu);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis
+}
+
+.impw-ic {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: var(--g100);
+    color: var(--g700);
+    flex: none
+}
+
+.impw.bad .impw-ic {
+    background: #ffe4e6;
+    color: var(--bad)
+}
+
+.impw.bad .ipb>i {
+    background: var(--bad)
+}
+
+.impw-x {
+    border: 0;
+    background: #eef4f0;
+    color: var(--mu);
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: grid;
+    place-items: center
+}
+
+.impw-x:hover {
+    background: #ffe4e6;
+    color: var(--bad)
+}
+
+.impw-r {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 8px;
+    font-size: .82rem
+}
+
+.impw-r span {
+    color: var(--mu)
+}
+
+.impw-r b {
+    color: var(--g800)
+}
+
+.impw.bad .impw-r b {
+    color: var(--bad)
+}
+
+.impw-n {
+    margin-top: 6px;
+    font-size: .76rem;
+    color: var(--mu)
+}
+
+.impw-d {
+    margin-top: 8px;
+    border: 0;
+    background: none;
+    color: var(--g700);
+    font: inherit;
+    font-size: .8rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0
+}
+
+.impw-e {
+    margin-top: 6px;
+    max-height: 150px;
+    overflow: auto;
+    font-size: .78rem;
+    background: #fff1f2;
+    color: #9f1239;
+    border-radius: 8px;
+    padding: 8px 10px
+}
