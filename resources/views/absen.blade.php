@@ -7,6 +7,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Absen · Hadirku</title>
     <link rel="icon" type="image/svg+xml" href="{{ asset('logo.svg') }}">
+    <x-pwa-head />
     <link rel="stylesheet" href="{{ asset('css/hadirku.css') }}">
     <link rel="stylesheet" href="{{ asset('css/pages/absen.css') }}">
 </head>
@@ -56,6 +57,7 @@
                     lokasi.</p>
             @endif
         </div>
+        <x-pwa-install />
         <script type="application/json" id="boot">@json($boot)</script>
     </div>
     <script src="{{ asset('js/common.js') }}"></script>

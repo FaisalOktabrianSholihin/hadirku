@@ -1,0 +1,119 @@
+/* Tombol & panduan "Download Aplikasi" (login dan absen) */
+.pwa-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    margin-top: 18px;
+    padding: 12px 16px;
+    border: 1.5px dashed var(--g500, #22b35e);
+    border-radius: 14px;
+    background: var(--g50, #f0fdf4);
+    color: var(--g800, #14532d);
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background .2s, transform .15s
+}
+
+.pwa-btn[hidden] {
+    display: none
+}
+
+.pwa-btn:hover {
+    background: var(--g100, #dcfce7)
+}
+
+.pwa-btn:active {
+    transform: scale(.98)
+}
+
+.pwa-btn small {
+    display: block;
+    font-weight: 500;
+    color: var(--mu, #5b7566);
+    font-size: .76rem
+}
+
+.pwa-btn .pwa-t {
+    text-align: left;
+    line-height: 1.25
+}
+
+.pwa-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background: rgba(5, 46, 22, .5);
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    animation: pwaf .2s both
+}
+
+.pwa-card {
+    background: #fff;
+    border-radius: 20px;
+    max-width: 380px;
+    width: 100%;
+    padding: 26px 24px 22px;
+    text-align: center;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, .3)
+}
+
+.pwa-card img {
+    border-radius: 14px
+}
+
+.pwa-card h3 {
+    margin: 12px 0 6px
+}
+
+.pwa-card p {
+    margin: 0 0 12px;
+    color: var(--mu, #5b7566);
+    font-size: .9rem
+}
+
+.pwa-card ol {
+    text-align: left;
+    margin: 0 0 18px;
+    padding-left: 22px;
+    font-size: .92rem
+}
+
+.pwa-card li {
+    margin: 6px 0
+}
+
+.pwa-ok {
+    border: 0;
+    background: var(--g600, #16a34a);
+    color: #fff;
+    font: inherit;
+    font-weight: 700;
+    padding: 11px 28px;
+    border-radius: 12px;
+    cursor: pointer
+}
+
+.pwa-toast {
+    position: fixed;
+    left: 50%;
+    bottom: 24px;
+    transform: translateX(-50%);
+    background: #14532d;
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 12px;
+    z-index: 210;
+    font-size: .9rem;
+    max-width: calc(100vw - 32px)
+}
+
+@keyframes pwaf {
+    from {
+        opacity: 0
+    }
+}

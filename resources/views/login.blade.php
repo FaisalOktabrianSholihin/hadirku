@@ -7,6 +7,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Masuk · Hadirku</title>
     <link rel="icon" type="image/svg+xml" href="{{ asset('logo.svg') }}">
+    <x-pwa-head />
     <link rel="stylesheet" href="{{ asset('css/hadirku.css') }}">
     <link rel="stylesheet" href="{{ asset('css/pages/login.css') }}">
 </head>
@@ -39,8 +40,8 @@
                     </div>
                     <label for="pw">Password</label>
                     <div class="fld"><x-icon n="lock" /><input id="pw" name="password" type="password"
-                            inputmode="numeric" maxlength="6" pattern="\d{6}" autocomplete="current-password"
-                            placeholder="6 digit depan No. KTP" required><span class="eye"
+                            inputmode="numeric" maxlength="6" pattern="\d{6}"
+                            autocomplete="current-password" placeholder="6 digit depan No. KTP" required><span class="eye"
                             data-eye="pw">Lihat</span></div>
                     <button class="btn full pulse" type="submit">Masuk &amp; Absen <x-icon n="arrow" /></button>
                 </form>
@@ -61,6 +62,8 @@
                             type="checkbox" name="ingat" value="1"> Ingat saya di perangkat ini</label>
                     <button class="btn full" type="submit">Masuk ke Panel Admin <x-icon n="arrow" /></button>
                 </form>
+
+                <x-pwa-install />
 
                 <p class="mu sm" style="text-align:center;margin-top:26px">Hadirku · © {{ date('Y') }} · Akses
                     diatur oleh administrator</p>
@@ -101,15 +104,9 @@
             document.getElementById('f-admin').style.display = b.dataset.t === 'admin' ? 'block' : 'none';
         });
         // NIK maksimal 8 digit, password 6 digit: hanya angka (termasuk saat paste)
-        [
-            ['nik', 8],
-            ['pw', 6]
-        ].forEach(([id, n]) => {
+        [['nik', 8], ['pw', 6]].forEach(([id, n]) => {
             const i = document.getElementById(id);
-            i.addEventListener('input', () => {
-                const v = i.value.replace(/\D/g, '').slice(0, n);
-                if (v !== i.value) i.value = v;
-            });
+            i.addEventListener('input', () => { const v = i.value.replace(/\D/g, '').slice(0, n); if (v !== i.value) i.value = v; });
         });
         document.querySelectorAll('[data-eye]').forEach(e => e.onclick = () => {
             const i = document.getElementById(e.dataset.eye);

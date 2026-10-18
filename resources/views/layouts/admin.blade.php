@@ -7,6 +7,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Admin')</title>
     <link rel="icon" type="image/svg+xml" href="{{ asset('logo.svg') }}">
+    <x-pwa-head />
     <link rel="stylesheet" href="{{ asset('css/hadirku.css') }}">
     <link rel="stylesheet" href="{{ asset('css/layout-admin.css') }}">
     <link rel="stylesheet" href="{{ asset('css/combo.css') }}">
