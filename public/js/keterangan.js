@@ -21,7 +21,10 @@
     try {
       if (t.dataset.tg) { await api(`/admin/api/keterangan/${t.dataset.tg}/aktif`, 'PATCH'); load(); }
       else if (t.dataset.ed) form(list.find(x => x.id == t.dataset.ed));
-      else if (t.dataset.del && confirm('Hapus keterangan ini?')) { await api(`/admin/api/keterangan/${t.dataset.del}`, 'DELETE'); toast('Terhapus'); load(); }
+      else if (t.dataset.del) {
+        const k = list.find(x => x.id == t.dataset.del);
+        if (await H.confirm({ judul: 'Hapus keterangan?', pesan: `Keterangan “${k?.nama || ''}” akan dihapus permanen.`, ok: 'Ya, hapus', tipe: 'bad' })) { await api(`/admin/api/keterangan/${t.dataset.del}`, 'DELETE'); toast('Keterangan dihapus'); load(); }
+      }
     } catch (er) { toast(er.message, 1); }
   });
   $('#btnAdd').onclick = () => form();
@@ -38,8 +41,10 @@
     m.querySelector('#bs').onclick = async () => {
       const b = m.querySelector('#bs'); b.disabled = true;
       try {
-        await api('/admin/api/keterangan', 'POST', { id: k?.id || null, nama: m.querySelector('#kn').value, kode: m.querySelector('#kk').value,
-          warna: m.querySelector('#kw').value, pakai_menit: m.querySelector('#km').checked });
+        await api('/admin/api/keterangan', 'POST', {
+          id: k?.id || null, nama: m.querySelector('#kn').value, kode: m.querySelector('#kk').value,
+          warna: m.querySelector('#kw').value, pakai_menit: m.querySelector('#km').checked
+        });
         m.remove(); toast('Tersimpan'); load();
       } catch (e) { toast(e.message, 1); b.disabled = false; }
     };

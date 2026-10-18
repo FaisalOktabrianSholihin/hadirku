@@ -6,7 +6,7 @@
   <div>
     <div class="dt" id="dt">—</div>
     <h2>Halo, {{ auth()->user()->name }} 👋</h2>
-    <div class="pills"><span>Super Admin</span><span>Semua Divisi</span>@if($libur)<span class="lib">Hari ini libur{{ $libur['jenis'] === 'rutin' ? ' rutin' : ': '.$libur['nama'] }}</span>@endif</div>
+    <div class="pills"><span>{{ auth()->user()->namaRole() }}</span><span>Semua Divisi</span>@if($libur)<span class="lib">Hari ini libur{{ $libur['jenis'] === 'rutin' ? ' rutin' : ': '.$libur['nama'] }}</span>@endif</div>
   </div>
   <div class="hs">
     <div><b>{{ $stat['karyawan'] }}</b><small>Karyawan</small></div>

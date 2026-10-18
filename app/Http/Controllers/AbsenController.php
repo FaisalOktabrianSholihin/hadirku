@@ -5,14 +5,17 @@ namespace App\Http\Controllers;
 use App\Models\Absensi;
 use App\Models\Karyawan;
 use App\Models\Pengaturan;
+use App\Support\Aktivitas;
 use App\Support\Geo;
 use App\Support\Kalender;
+use App\Support\Kecurangan;
 use App\Support\Waktu;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class AbsenController extends Controller
@@ -32,6 +35,23 @@ class AbsenController extends Controller
             'menit_telat' => (int) $a->menit_telat,
             'foto_url' => route('absen.foto'),
         ];
+    }
+
+    private function namaKaryawan(Request $r): string
+    {
+        $nik = (string) $r->session()->get('nik');
+
+        return Karyawan::where('nik', $nik)->value('nama') ?? $nik;
+    }
+
+    /** Respons standar saat kecurangan terdeteksi (HTTP 422 + kode agar front-end menampilkan pop up khusus) */
+    private function curang(Request $r, string $kode, string $pesan, array $bukti, string $logAksi, string $logDeskripsi): JsonResponse
+    {
+        $r->session()->forget('absen_nonce');
+        $nama = $this->namaKaryawan($r);
+        Aktivitas::catat('absen', $logAksi, "{$nama} ({$r->session()->get('nik')}): {$logDeskripsi}", 'danger', $bukti, $nama, 'karyawan');
+
+        return response()->json(['message' => $pesan, 'kode' => $kode, 'bukti' => $bukti], 422);
     }
 
     public function index(Request $r): View
@@ -57,13 +77,46 @@ class AbsenController extends Controller
                 'serverNow' => (int) $now->format('Uv'),
                 'tz' => config('app.timezone'),
                 'sudah' => $this->bukti($sudah),
+                'toleransi' => Kecurangan::toleransiWaktu(),
+                'deteksiGps' => (bool) config('hadirku.deteksi_gps'),
+                'skorGps' => (int) config('hadirku.skor_fake_gps'),
             ],
         ]);
+    }
+
+    /**
+     * Sinkron waktu: server mengembalikan jamnya sendiri dan membandingkan dengan jam perangkat (?d=epoch ms).
+     * Dipakai front-end untuk mendeteksi perubahan jam HP kapan pun (saat buka halaman, kembali ke tab, dll).
+     */
+    public function waktu(Request $r): JsonResponse
+    {
+        $out = ['ms' => (int) now()->format('Uv'), 'curang' => false];
+        $bukti = Kecurangan::waktuDiubah($r->query('d'));
+        if ($bukti) {
+            $out['curang'] = true;
+            $out['bukti'] = $bukti;
+            // catat paling sering 1x per 5 menit per sesi agar log tidak penuh
+            $terakhir = (int) $r->session()->get('waktu_log', 0);
+            if (now()->timestamp - $terakhir > 300) {
+                $r->session()->put('waktu_log', now()->timestamp);
+                $nama = $this->namaKaryawan($r);
+                Aktivitas::catat('absen', 'waktu_diubah', "{$nama} ({$r->session()->get('nik')}): jam perangkat {$bukti['arah']} {$bukti['selisih_teks']} dari server (saat membuka halaman absen)", 'danger', $bukti, $nama, 'karyawan');
+            }
+        }
+
+        return response()->json($out);
     }
 
     /** Dipanggil saat kamera dibuka: menerbitkan token sekali pakai */
     public function mulai(Request $r): JsonResponse
     {
+        $d = $r->validate(['waktu_perangkat' => 'required|numeric']);
+
+        if ($bukti = Kecurangan::waktuDiubah($d['waktu_perangkat'])) {
+            return $this->curang($r, 'waktu_diubah', 'Sistem mendeteksi kecurangan: waktu perangkat diubah.', $bukti,
+                'waktu_diubah', "jam perangkat {$bukti['arah']} {$bukti['selisih_teks']} dari server (mencoba membuka kamera absen)");
+        }
+
         $token = Str::random(40);
         $r->session()->put('absen_nonce', ['t' => $token, 'at' => now()->timestamp]);
 
@@ -72,12 +125,24 @@ class AbsenController extends Controller
 
     public function store(Request $r): JsonResponse
     {
+        $gps = (bool) config('hadirku.deteksi_gps');
         $d = $r->validate([
             'foto' => 'required|string',
             'lat' => 'required|numeric|between:-90,90',
             'lng' => 'required|numeric|between:-180,180',
             'akurasi' => 'nullable|numeric|min:0',
             'nonce' => 'required|string',
+            'waktu_perangkat' => 'required|numeric',
+            'geo_asli' => 'nullable|boolean',
+            'sampel' => [Rule::requiredIf($gps), 'nullable', 'array', 'min:3', 'max:12'],
+            'sampel.*.lat' => 'required|numeric|between:-90,90',
+            'sampel.*.lng' => 'required|numeric|between:-180,180',
+            'sampel.*.acc' => 'nullable|numeric',
+            'sampel.*.alt' => 'nullable|numeric',
+            'sampel.*.ts' => 'nullable|numeric',
+        ], [
+            'sampel.required' => 'Verifikasi lokasi belum lengkap. Ulangi ambil foto.',
+            'sampel.min' => 'Verifikasi lokasi belum lengkap. Ulangi ambil foto.',
         ]);
 
         $nik = $r->session()->get('nik');
@@ -91,6 +156,18 @@ class AbsenController extends Controller
         $libur = Kalender::info($hari);
         if ($libur && ! config('hadirku.izinkan_absen_libur')) {
             return response()->json(['message' => 'Hari ini libur'.($libur['jenis'] === 'rutin' ? ' rutin' : ': '.$libur['nama']).'. Absen tidak diperlukan.'], 403);
+        }
+
+        // ===== Anti-kecurangan 1: perubahan waktu perangkat =====
+        if ($bukti = Kecurangan::waktuDiubah($d['waktu_perangkat'])) {
+            return $this->curang($r, 'waktu_diubah', 'Sistem mendeteksi kecurangan: waktu perangkat diubah.', $bukti,
+                'waktu_diubah', "absen ditolak, jam perangkat {$bukti['arah']} {$bukti['selisih_teks']} dari server (HP {$bukti['waktu_perangkat']}, server {$bukti['waktu_server']})");
+        }
+
+        // ===== Anti-kecurangan 2: Fake GPS / Mock Location =====
+        if ($gps && ($hasil = Kecurangan::fakeGps($d['sampel'] ?? [], (bool) ($d['geo_asli'] ?? true)))) {
+            return $this->curang($r, 'fake_gps', 'Sistem mendeteksi kecurangan: Fake GPS / Mock Location.', $hasil,
+                'fake_gps', 'absen ditolak, terdeteksi Fake GPS (skor '.$hasil['skor'].'): '.implode(' ', $hasil['alasan']));
         }
 
         // Token kamera sekali pakai
@@ -137,6 +214,9 @@ class AbsenController extends Controller
         $jarak = (int) round($bestJarak);
 
         if ($jarak > $best->radius) {
+            $nama = $this->namaKaryawan($r);
+            Aktivitas::catat('absen', 'di_luar_radius', "{$nama} ({$nik}): absen ditolak, {$jarak} m dari {$best->nama} (radius {$best->radius} m)", 'warning', [], $nama, 'karyawan');
+
             return response()->json([
                 'message' => 'Anda berada di luar radius lahan.',
                 'detail' => ['titik' => $best->nama, 'jarak' => $jarak, 'radius' => $best->radius],
@@ -177,6 +257,9 @@ class AbsenController extends Controller
 
             return response()->json(['message' => 'Anda sudah absen hari ini.'], 409);
         }
+
+        $nama = $this->namaKaryawan($r);
+        Aktivitas::catat('absen', 'absen', "{$nama} ({$nik}) absen pukul ".$now->format('H:i:s').' di '.$best->nama.($status === 'telat' ? " (telat {$menitTelat} menit)" : ''), 'info', [], $nama, 'karyawan');
 
         return response()->json(['ok' => true, 'data' => $this->bukti($a)]);
     }

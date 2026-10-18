@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\KehadiranManual;
 use App\Models\Keterangan;
+use App\Support\Aktivitas;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -41,12 +42,14 @@ class KeteranganController extends Controller
 
         if ($id) {
             Keterangan::findOrFail($id)->update($data);
+            Aktivitas::catat('keterangan', 'ubah', "Mengubah keterangan absen {$data['nama']} ({$data['kode']})");
         } else {
             $data['urutan'] = (int) Keterangan::max('urutan') + 1;
             if ($data['urutan'] >= 99) {
                 $data['urutan'] = 98; // 99 dicadangkan untuk "Libur"
             }
             Keterangan::create($data);
+            Aktivitas::catat('keterangan', 'tambah', "Menambah keterangan absen {$data['nama']} ({$data['kode']})");
         }
 
         return response()->json(['ok' => true]);
@@ -59,6 +62,7 @@ class KeteranganController extends Controller
             return response()->json(['message' => 'Keterangan bawaan sistem tidak bisa dinonaktifkan.'], 422);
         }
         $k->update(['aktif' => ! $k->aktif]);
+        Aktivitas::catat('keterangan', 'status', ($k->aktif ? 'Mengaktifkan' : 'Menonaktifkan')." keterangan absen {$k->nama}");
 
         return response()->json(['aktif' => $k->aktif]);
     }
@@ -73,6 +77,7 @@ class KeteranganController extends Controller
             return response()->json(['message' => 'Sudah dipakai pada data kehadiran. Nonaktifkan saja.'], 422);
         }
         $k->delete();
+        Aktivitas::catat('keterangan', 'hapus', "Menghapus keterangan absen {$k->nama}", 'warning');
 
         return response()->json(['ok' => true]);
     }

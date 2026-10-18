@@ -1,0 +1,7 @@
+Timpa file di folder proyek hadirku dengan struktur yang sama, lalu jalankan:
+  php artisan migrate
+  (opsional) php artisan db:seed
+Opsional di .env:
+  HADIRKU_DETEKSI_GPS=true
+  HADIRKU_SKOR_FAKE_GPS=3
+  HADIRKU_TOLERANSI_WAKTU=120

@@ -73,8 +73,8 @@
     items.push({ tanggal: t, nama: '', jenis: 'nasional' }); sel = t; setDirty(true); render();
   };
 
-  const geser = n => {
-    if (dirty && !confirm('Perubahan belum disimpan. Pindah bulan dan buang perubahan?')) return;
+  const geser = async n => {
+    if (dirty && !(await H.confirm({ judul: 'Buang perubahan?', pesan: 'Catatan libur bulan ini belum disimpan. Jika pindah bulan, perubahan akan hilang.', ok: 'Pindah bulan', batal: 'Tetap di sini', tipe: 'warn' }))) return;
     const [y, m] = bulan.split('-').map(Number), d = new Date(y, m - 1 + n, 1);
     load(`${d.getFullYear()}-${pad(d.getMonth() + 1)}`);
   };

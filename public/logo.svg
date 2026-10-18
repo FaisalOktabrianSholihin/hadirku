@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="bg" x1="8" y1="4" x2="56" y2="62" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#34d27b"/>
+      <stop offset="1" stop-color="#0b6b35"/>
+    </linearGradient>
+    <linearGradient id="pin" x1="0" y1="8" x2="0" y2="52" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#d9f7e4"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="18" fill="url(#bg)"/>
+  <path d="M0 46c14-9 28-9 64 2v16H0z" fill="#ffffff" opacity=".08"/>
+  <ellipse cx="32" cy="53.5" rx="14" ry="3.6" fill="none" stroke="#ffffff" stroke-opacity=".55" stroke-width="2"/>
+  <path d="M32 8.5c-9.2 0-16.5 7.2-16.5 16.2 0 12 13.6 24.3 15.4 25.8a2.1 2.1 0 0 0 2.2 0c1.8-1.5 15.4-13.8 15.4-25.8 0-9-7.3-16.2-16.5-16.2z" fill="url(#pin)"/>
+  <path d="M23.8 25.4l5.9 5.9 10.6-11.6" fill="none" stroke="#0f7a3c" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M46.5 9.5c4.8-.2 8 2.6 8.2 7.4-4.9.3-8.1-2.5-8.2-7.4z" fill="#bbf7d0"/>
+</svg>

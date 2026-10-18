@@ -7,6 +7,14 @@ return [
     // Boleh absen pada hari libur (nasional/rutin)? Default: tidak
     'izinkan_absen_libur' => (bool) env('HADIRKU_ABSEN_LIBUR', false),
 
+    // ===== Anti-kecurangan =====
+    // Deteksi Fake GPS / Mock Location berbasis pola data lokasi (browser tidak bisa membaca flag isMock Android)
+    'deteksi_gps' => (bool) env('HADIRKU_DETEKSI_GPS', true),
+    // Skor minimal agar dianggap Fake GPS (semakin kecil semakin ketat, bisa memicu salah deteksi)
+    'skor_fake_gps' => (int) env('HADIRKU_SKOR_FAKE_GPS', 3),
+    // Toleransi selisih jam perangkat vs jam server (detik). Lebih dari ini = dianggap mengubah waktu HP
+    'toleransi_waktu' => (int) env('HADIRKU_TOLERANSI_WAKTU', 120),
+
     'radius_default' => 150,
     'maks_foto_kb' => 2048,
     'nonce_menit' => 15,

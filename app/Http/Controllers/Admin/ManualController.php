@@ -7,6 +7,7 @@ use App\Models\Divisi;
 use App\Models\Karyawan;
 use App\Models\Keterangan;
 use App\Models\Pengaturan;
+use App\Support\Aktivitas;
 use App\Support\Kalender;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -53,6 +54,8 @@ class ManualController extends Controller
         if ((int) $d['keterangan_id'] === 0) {
             $n = DB::table('kehadiran_manual')->whereIn('nik', $niks)->whereBetween('tanggal', [$d['dari'], $d['sampai']])->delete();
 
+            Aktivitas::catat('report', 'manual_hapus', "Menghapus {$n} keterangan manual ({$d['dari']} s/d {$d['sampai']}, ".count($niks).' karyawan)', 'warning');
+
             return response()->json(['ok' => true, 'pesan' => "{$n} data keterangan manual dihapus."]);
         }
 
@@ -84,6 +87,8 @@ class ManualController extends Controller
         foreach (array_chunk($rows, 500) as $chunk) {
             DB::table('kehadiran_manual')->upsert($chunk, ['nik', 'tanggal'], ['keterangan_id', 'menit', 'catatan', 'updated_at']);
         }
+
+        Aktivitas::catat('report', 'manual', "Input keterangan {$ket->nama} untuk ".count($niks)." karyawan ({$d['dari']} s/d {$d['sampai']})");
 
         return response()->json(['ok' => true, 'pesan' => count($rows).' data keterangan tersimpan (hari libur dilewati).']);
     }

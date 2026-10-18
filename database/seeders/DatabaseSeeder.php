@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\HariLibur;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
@@ -13,7 +14,7 @@ class DatabaseSeeder extends Seeder
         // Akun admin (dibuat sekali). GANTI password setelah login pertama.
         User::firstOrCreate(
             ['email' => env('ADMIN_EMAIL', 'administrator@gmail.com')],
-            ['name' => 'Administrator', 'password' => env('ADMIN_PASSWORD', 'password')],
+            ['name' => 'Administrator', 'password' => env('ADMIN_PASSWORD', 'password'), 'role_id' => Role::where('slug', 'super_admin')->value('id'), 'aktif' => true],
         );
 
         // Libur nasional TETAP setiap tahun. Libur yang tanggalnya berubah-ubah

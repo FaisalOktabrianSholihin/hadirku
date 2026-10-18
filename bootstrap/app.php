@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\CekIzin;
 use App\Http\Middleware\EnsureKaryawan;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -13,7 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->alias(['karyawan' => EnsureKaryawan::class]);
+        $middleware->alias(['karyawan' => EnsureKaryawan::class, 'izin' => CekIzin::class]);
         // Semua rute yang memakai 'auth' adalah rute admin
         $middleware->redirectGuestsTo(fn () => route('admin.login'));
         $middleware->redirectUsersTo(fn () => route('admin.index'));

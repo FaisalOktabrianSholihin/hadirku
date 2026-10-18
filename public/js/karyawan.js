@@ -2,10 +2,11 @@
   const { api, esc, toast, modal, ic } = H;
   const $ = s => document.querySelector(s);
   let page = 1, q = '', dv = '', last = 1;
+  const st = { sort: '', dir: 'asc' };
 
   async function load() {
     try {
-      const r = await api(`/admin/api/pengaturan?page=${page}&q=${encodeURIComponent(q)}&divisi=${dv}`);
+      const r = await api(`/admin/api/pengaturan?page=${page}&q=${encodeURIComponent(q)}&divisi=${dv}&sort=${st.sort}&dir=${st.dir}`);
       last = r.meta.terakhir;
       $('#tb').innerHTML = r.data.map((c, i) => `<tr style="animation-delay:${i * 25}ms">
         <td><b>${esc(c.nama)}</b><br><span class="mu sm">${esc(c.jabatan)} · ${esc(c.nik)}</span></td>
@@ -20,6 +21,7 @@
       $('#prev').disabled = page <= 1; $('#next').disabled = page >= last;
     } catch (e) { toast(e.message, 1); }
   }
+  H.sortable($('#th'), st, () => { page = 1; load(); });
   $('#prev').onclick = () => { page--; load(); };
   $('#next').onclick = () => { page++; load(); };
   let tm; $('#cari').oninput = e => { clearTimeout(tm); tm = setTimeout(() => { q = e.target.value; page = 1; load(); }, 300); };
@@ -29,12 +31,15 @@
     try {
       if (t.dataset.tg) { await api(`/admin/api/pengaturan/${t.dataset.tg}/aktif`, 'PATCH'); load(); }
       else if (t.dataset.ed) form(t.dataset.ed);
-      else if (t.dataset.del && confirm('Hapus pengaturan karyawan ini?')) { await api(`/admin/api/pengaturan/${t.dataset.del}`, 'DELETE'); toast('Terhapus'); load(); }
+      else if (t.dataset.del) {
+        const nama = t.closest('tr').querySelector('b')?.textContent || t.dataset.del;
+        if (await H.confirm({ judul: 'Hapus pengaturan presensi?', pesan: `Pengaturan presensi dan titik lahan milik ${nama} akan dihapus. Data karyawan di db_indukk tidak terpengaruh.`, ok: 'Ya, hapus', tipe: 'bad' })) { await api(`/admin/api/pengaturan/${t.dataset.del}`, 'DELETE'); toast('Pengaturan dihapus'); load(); }
+      }
     } catch (err) { toast(err.message, 1); }
   });
   $('#btnTambah').onclick = () => form();
   $('#btnImport').onclick = () => imp();
-  api('/admin/api/induk').then(r => { $('#fdiv').innerHTML += r.divisi.map(d => `<option value="${d.id}">${esc(d.nama_divisi)}</option>`).join(''); }).catch(() => {});
+  api('/admin/api/induk').then(r => { $('#fdiv').innerHTML += r.divisi.map(d => `<option value="${d.id}">${esc(d.nama_divisi)}</option>`).join(''); }).catch(() => { });
 
   const rv = (m, n) => m.querySelector(`[name=${n}]:checked`)?.value;
 
@@ -101,8 +106,10 @@
     let tq; m.querySelector('#fq')?.addEventListener('input', e => { clearTimeout(tq); tq = setTimeout(async () => { try { tersedia = (await api('/admin/api/induk?q=' + encodeURIComponent(e.target.value))).tersedia; optEmp(); } catch (er) { toast(er.message, 1); } }, 300); });
     m.querySelector('#bs').onclick = async () => {
       const asmen = isMgr() && rv(m, 'sm') === 'asmen';
-      const body = { nik: fk.value, telat: rv(m, 'tl') === '1', jam_batas: m.querySelector('#fjam').value || null, jam_tutup: m.querySelector('#ftutup').value || null,
-        tipe: rv(m, 'md'), sumber: asmen ? 'asmen' : 'baru', ikut_nik: asmen ? m.querySelector('#fas').value : null, titik: asmen ? [] : pts };
+      const body = {
+        nik: fk.value, telat: rv(m, 'tl') === '1', jam_batas: m.querySelector('#fjam').value || null, jam_tutup: m.querySelector('#ftutup').value || null,
+        tipe: rv(m, 'md'), sumber: asmen ? 'asmen' : 'baru', ikut_nik: asmen ? m.querySelector('#fas').value : null, titik: asmen ? [] : pts
+      };
       if (!body.nik) return toast('Pilih karyawan', 1);
       const b = m.querySelector('#bs'); b.disabled = true;
       try { await api('/admin/api/pengaturan', 'POST', body); m.remove(); toast('Data tersimpan'); load(); }
@@ -113,10 +120,10 @@
 
   // ===== Import Excel / CSV =====
   const TPL = [['NIK', 'Jam_Batas', 'Telat', 'Jam_Tutup', 'Nama_Titik', 'Koordinat_atau_Link', 'Radius_m', 'Ikut_NIK_Asmen'],
-    ['99720014', '08:00', 'Ya', '17:00', 'Lahan A', '-8.2192,114.3691', '150', ''],
-    ['99720014', '08:00', 'Ya', '17:00', 'Lahan B', 'https://www.google.com/maps/@-8.2301,114.3802,17z', '200', ''],
-    ['02820009', '', 'Tidak', '', 'Lahan A', '-8.2105,114.3555', '100', ''],
-    ['96700008', '', 'Tidak', '', '', '', '', '99720014']];
+  ['99720014', '08:00', 'Ya', '17:00', 'Lahan A', '-8.2192,114.3691', '150', ''],
+  ['99720014', '08:00', 'Ya', '17:00', 'Lahan B', 'https://www.google.com/maps/@-8.2301,114.3802,17z', '200', ''],
+  ['02820009', '', 'Tidak', '', 'Lahan A', '-8.2105,114.3555', '100', ''],
+  ['96700008', '', 'Tidak', '', '', '', '', '99720014']];
   function imp() {
     const m = modal(`<h3>Import Excel / CSV</h3>
       <p class="mu sm" style="margin:4px 0 12px">Satu baris = satu titik. NIK yang sama di beberapa baris otomatis menjadi <b>Multi Titik</b> (jumlah baris tanpa batas). Satu baris saja = Single. Data lama karyawan yang sama akan ditimpa.</p>

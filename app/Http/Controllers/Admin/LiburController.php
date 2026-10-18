@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\HariLibur;
 use App\Models\LiburRutin;
+use App\Support\Aktivitas;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -70,6 +71,8 @@ class LiburController extends Controller
                 LiburRutin::whereIn('hari', $d['rutin'])->update(['aktif' => true]);
             }
         });
+
+        Aktivitas::catat('libur', 'simpan', 'Menyimpan kalender libur '.$awal->format('m/Y').': '.count($rows).' catatan, libur rutin hari ke-['.implode(',', $d['rutin']).']');
 
         return response()->json(['ok' => true]);
     }

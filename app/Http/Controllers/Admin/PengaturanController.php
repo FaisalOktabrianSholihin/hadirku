@@ -7,6 +7,7 @@ use App\Models\Divisi;
 use App\Models\Karyawan;
 use App\Models\Pengaturan;
 use App\Services\PengaturanService;
+use App\Support\Aktivitas;
 use App\Support\Geo;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -23,10 +24,25 @@ class PengaturanController extends Controller
         $q = trim((string) $r->query('q', ''));
         $divisi = (int) $r->query('divisi', 0);
 
+        $dir = strtolower((string) $r->query('dir', 'desc')) === 'asc' ? 'asc' : 'desc';
+        $kt = '`'.str_replace('.', '`.`', Karyawan::tabel()).'`';
+        $dt = '`'.str_replace('.', '`.`', Divisi::tabel()).'`';
+        // jumlah titik yang berlaku (titik sendiri, atau titik asmen jika manager ikut asmen)
+        $jml = '(select count(*) from titik_lahan tl join pengaturan_absen pa on pa.id = tl.pengaturan_id where pa.nik = coalesce(pengaturan_absen.ikut_nik, pengaturan_absen.nik))';
+        $urut = [
+            'nama' => "(select k.nama from {$kt} k where k.nik = pengaturan_absen.nik limit 1) {$dir}",
+            'divisi' => "(select d.nama_divisi from {$kt} k join {$dt} d on d.id = k.divisi_id where k.nik = pengaturan_absen.nik limit 1) {$dir}",
+            'jam' => "pengaturan_absen.jam_batas is null, pengaturan_absen.jam_batas {$dir}",
+            'titik1' => "case when pengaturan_absen.tipe_titik = 'single' and pengaturan_absen.ikut_nik is null then {$jml} else -1 end {$dir}",
+            'titikmulti' => "case when pengaturan_absen.ikut_nik is not null or pengaturan_absen.tipe_titik = 'multi' then {$jml} else -1 end {$dir}",
+            'aktif' => "pengaturan_absen.aktif {$dir}",
+        ];
+
         $page = Pengaturan::query()->with(['karyawan.jabatan', 'karyawan.divisi'])->withCount('titik')
             ->when($q !== '', fn ($x) => $x->whereHas('karyawan', fn ($i) => $i->where(fn ($w) => $w
                 ->where('nama', 'like', "%{$q}%")->orWhere('nik', 'like', "%{$q}%"))))
             ->when($divisi > 0, fn ($x) => $x->whereHas('karyawan', fn ($i) => $i->where('divisi_id', $divisi)))
+            ->when(isset($urut[$r->query('sort')]), fn ($x) => $x->orderByRaw($urut[$r->query('sort')]))
             ->orderByDesc('id')->paginate(20);
 
         $ikut = $page->getCollection()->pluck('ikut_nik')->filter()->unique()->values();
@@ -156,7 +172,9 @@ class PengaturanController extends Controller
             }
         }
 
+        $baru = ! Pengaturan::where('nik', $d['nik'])->exists();
         $this->svc->simpan($d['nik'], (bool) $d['telat'], $d['jam_batas'] ?? null, $d['jam_tutup'] ?? null, $d['tipe'], $ikut, $titik);
+        Aktivitas::catat('presensi', $baru ? 'tambah' : 'ubah', ($baru ? 'Menambah' : 'Mengubah')." pengaturan presensi {$k->nama} ({$k->nik})".($ikut ? ", titik ikut asmen {$ikut}" : ', '.count($titik).' titik'));
 
         return response()->json(['ok' => true]);
     }
@@ -165,6 +183,8 @@ class PengaturanController extends Controller
     {
         $p = Pengaturan::where('nik', $nik)->firstOrFail();
         $p->update(['aktif' => ! $p->aktif]);
+        $nama = Karyawan::where('nik', $nik)->value('nama') ?? $nik;
+        Aktivitas::catat('presensi', 'status', ($p->aktif ? 'Mengaktifkan' : 'Menonaktifkan')." login/presensi karyawan {$nama} ({$nik})", $p->aktif ? 'info' : 'warning');
 
         return response()->json(['aktif' => $p->aktif]);
     }
@@ -178,7 +198,9 @@ class PengaturanController extends Controller
 
             return response()->json(['message' => "Tidak bisa dihapus, titiknya dipakai manager: {$nama}."], 422);
         }
+        $nama = Karyawan::where('nik', $nik)->value('nama') ?? $nik;
         $p->delete();
+        Aktivitas::catat('presensi', 'hapus', "Menghapus pengaturan presensi {$nama} ({$nik})", 'warning');
 
         return response()->json(['ok' => true]);
     }
@@ -308,6 +330,8 @@ class PengaturanController extends Controller
                 $berhasil++;
             }
         });
+
+        Aktivitas::catat('presensi', 'import', "Import pengaturan presensi: {$berhasil} karyawan berhasil, ".(count($groups) - $berhasil).' dilewati', count($err) ? 'warning' : 'info');
 
         return response()->json([
             'berhasil' => $berhasil,
